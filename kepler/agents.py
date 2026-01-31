@@ -210,7 +210,8 @@ class DebateOrchestrator:
             response_format={"type": "json_object"}
         )
 
-        content = response.json_content = response.choices[0].message.content
+        content = response.choices[0].message.content
+        
         self.debate_history.append({
             "agent": agent_name,
             "response": content
@@ -299,30 +300,57 @@ Deliberate and deliver your final verdict. Weigh all arguments and provide trans
 
         return self._call_agent(JURY_FOREMAN_SYSTEM, prompt, "Jury Foreman")
 
-    def run_full_debate(self, claim: str, truth: str) -> DebateResult:
-        """Execute the complete debate protocol."""
+    def run_full_debate(self, claim: str, truth: str, num_rounds: int = None) -> DebateResult:
+        """Execute the complete debate protocol with multi-round exchanges.
+        
+        Args:
+            claim: External claim to verify
+            truth: Source of truth
+            num_rounds: Number of debate rounds (random 2-4 if not specified)
+        """
+        import random
+        
         self.debate_history = []
+        
+        # Random number of debate rounds (2-4) if not specified
+        if num_rounds is None:
+            num_rounds = random.randint(2, 4)
 
         print(f"\n{'='*60}")
         print("TRIBUNAL COMMENCING")
         print(f"{'='*60}")
         print(f"\nCLAIM: {claim[:100]}...")
         print(f"TRUTH: {truth[:100]}...")
+        print(f"\n🔄 {num_rounds} rounds of debate will occur\n")
 
-        # Round 1: Prosecution
-        print("\n[Round 1] Prosecutor presenting accusations...")
+        # Round 1: Initial positions
+        print(f"[Round 1] Prosecutor presenting initial accusations...")
         prosecution = self.run_prosecution(claim, truth)
 
-        # Round 2: Defense
-        print("[Round 2] Defense presenting rebuttals...")
+        print(f"[Round 1] Defense presenting initial rebuttals...")
         defense = self.run_defense(claim, truth, prosecution)
 
-        # Round 3: Epistemologist
-        print("[Round 3] Epistemologist analyzing uncertainty...")
+        print(f"[Round 1] Epistemologist analyzing uncertainty...")
         epistemology = self.run_epistemologist(claim, truth, prosecution, defense)
 
-        # Round 4: Verdict
-        print("[Round 4] Jury Foreman deliberating...")
+        # Additional debate rounds (agents respond to each other)
+        for round_num in range(2, num_rounds + 1):
+            print(f"\n[Round {round_num}] Continuing debate...")
+            
+            # Prosecutor responds to defense
+            print(f"[Round {round_num}] Prosecutor counter-response...")
+            prosecution = self._prosecutor_counter_response(claim, truth, prosecution, defense, epistemology)
+            
+            # Defense responds to prosecutor
+            print(f"[Round {round_num}] Defense counter-response...")
+            defense = self._defense_counter_response(claim, truth, prosecution, defense, epistemology)
+            
+            # Epistemologist updates analysis
+            print(f"[Round {round_num}] Epistemologist updating analysis...")
+            epistemology = self.run_epistemologist(claim, truth, prosecution, defense)
+
+        # Final Round: Jury Foreman delivers verdict
+        print(f"\n[Final Round] Jury Foreman deliberating...")
         verdict_response = self.run_jury_foreman(claim, truth, prosecution, defense, epistemology)
 
         # Parse verdict
@@ -367,6 +395,74 @@ Deliberate and deliver your final verdict. Weigh all arguments and provide trans
             confidence=verdict_response.get("confidence", 0),
             debate_transcript=self.debate_history
         )
+    
+    def _prosecutor_counter_response(self, claim: str, truth: str, 
+                                     prosecution: dict, defense: dict, epistemology: dict) -> dict:
+        """Prosecutor responds to defense arguments in continued debate."""
+        
+        # Extract defense's main counter-arguments
+        defense_rebuttals = defense.get('rebuttals', [])
+        defense_points = "\n".join([f"- {r.get('counter_argument', '')}" for r in defense_rebuttals])
+        
+        prompt = f"""CONTINUING DEBATE - PROSECUTOR'S RESPONSE TO DEFENSE
+
+ORIGINAL FACT: "{truth}"
+EXTERNAL CLAIM: "{claim}"
+
+YOUR PREVIOUS ACCUSATIONS:
+{json.dumps(prosecution.get('accusations', []), indent=2)}
+
+DEFENSE'S COUNTER-ARGUMENTS (you must address these):
+{defense_points}
+
+EPISTEMOLOGIST'S UNCERTAINTY ANALYSIS:
+{epistemology.get('key_uncertainty', 'No specific uncertainty identified')}
+
+The Defense has challenged your accusations. You must now:
+1. **Directly respond** to each of the Defense's counter-arguments listed above
+2. Either **strengthen your case** with new evidence OR **acknowledge** where Defense has valid points
+3. **Refine your accusations** based on this exchange
+4. Maintain intellectual honesty - if Defense makes a strong point, acknowledge it
+
+This is a CONVERSATION - reference what Defense said and respond to it specifically.
+
+Respond with the same JSON format as before (accusations array with type, evidence, severity, explanation)."""
+        
+        return self._call_agent(PROSECUTOR_SYSTEM, prompt, "Prosecutor (Counter)")
+    
+    def _defense_counter_response(self, claim: str, truth: str,
+                                  prosecution: dict, defense: dict, epistemology: dict) -> dict:
+        """Defense responds to prosecutor's updated arguments in continued debate."""
+        
+        # Extract prosecutor's main accusations
+        prosecutor_accusations = prosecution.get('accusations', [])
+        prosecutor_points = "\n".join([f"- {a.get('explanation', '')}" for a in prosecutor_accusations])
+        
+        prompt = f"""CONTINUING DEBATE - DEFENSE'S RESPONSE TO PROSECUTOR
+
+ORIGINAL FACT: "{truth}"
+EXTERNAL CLAIM: "{claim}"
+
+YOUR PREVIOUS REBUTTALS:
+{json.dumps(defense.get('rebuttals', []), indent=2)}
+
+PROSECUTOR'S ACCUSATIONS (you must address these):
+{prosecutor_points}
+
+EPISTEMOLOGIST'S UNCERTAINTY ANALYSIS:
+{epistemology.get('key_uncertainty', 'No specific uncertainty identified')}
+
+The Prosecutor has presented accusations (possibly refined from earlier rounds). You must now:
+1. **Directly respond** to each of the Prosecutor's accusations listed above
+2. Either **strengthen your defense** with new justifications OR **concede** where Prosecutor makes valid points
+3. **Refine your rebuttals** based on this exchange
+4. Maintain intellectual honesty - if Prosecutor makes a strong point, acknowledge it
+
+This is a CONVERSATION - reference what Prosecutor said and respond to it specifically.
+
+Respond with the same JSON format as before (rebuttals array with accusation_addressed, counter_argument, justification)."""
+        
+        return self._call_agent(DEFENSE_SYSTEM, prompt, "Defense (Counter)")
 
 
 def format_debate_for_presentation(result: DebateResult) -> str:

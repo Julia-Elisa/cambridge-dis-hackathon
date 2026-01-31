@@ -263,8 +263,8 @@ def export_results_json(results: list[DebateResult], filepath: str = "results.js
                 "arguments": r.epistemologist_response.arguments,
                 "evidence": r.epistemologist_response.evidence,
                 "confidence": r.epistemologist_response.confidence
-            },
-            "debate_transcript": r.debate_transcript
+            }
+            # "debate_transcript": r.debate_transcript
         })
 
     with open(filepath, 'w', encoding='utf-8') as f:
