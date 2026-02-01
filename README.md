@@ -1,12 +1,24 @@
-# Kepler - Multi-Agent Fact Verification System
+# Multi-Agent Fact Verification System - Kepler team
+FactTrace Hackathon · University of Cambridge · 31 Jan 2026
 
-A sophisticated AI-powered fact-checking system that uses adversarial debate between specialized agents to verify claims against source truths. Instead of a single AI making black-box decisions, our system features a courtroom-style debate where agents argue, disagree, and negotiate to reach transparent, well-reasoned verdicts.
+Team: Julia D, Iuliia V, Paulina C, Raj.
+
+**Award:** Winner team.
+
+
+We built a **multi-agent fact-verification system** where AI agents **disagree, argue, and negotiate** to determine whether an external claim is a **faithful representation** of a source fact or a **mutation**.
+
+Instead of a single black-box verdict, our system exposes the *reasoning process* through an adversarial, courtroom-style debate.
+
+🔗 **Project visualization demo:**  
+👉 *[https://v0.app/t/KEPLER_FACTTRACE_DEMO](https://v0.app/chat/next-js-dashboard-lUkLU5uikRO?b=b_FxcagV00q6b&ref=48EC34)*  
+*(interactive UI showing agent debates, verdicts, and confidence)*
 
 ---
 
-## 🎯 Project Overview
+## Project Overview
 
-This system addresses the challenge: **"Is an external claim a faithful representation of an internal fact, or is it a mutation?"**
+Based on a dataset of claims and truthful affirmations ([link](https://github.com/Julia-Elisa/cambridge-dis-hackathon/blob/main/kepler/Kepler_full.csv)), this system addresses the challenge: **"Is an external claim a faithful representation of an internal fact, or is it a mutation?"**
 
 ### The Multi-Agent Tribunal
 
@@ -27,25 +39,18 @@ Our system employs **4 specialized agents** in an adversarial debate architectur
 
 ---
 
-## 📋 Requirements
+## Requirements
 
 - **Python**: 3.11 or higher
 - **OpenAI API Key**: Required for running the agents
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
-### 1. Clone the Repository
+### 1. Set Up Environment
 
-```bash
-git clone <repository-url>
-cd cambridge-dis-hackathon
-```
-
-### 2. Set Up Environment
-
-#### Option A: Using Conda (Recommended)
+#### Using Conda (Recommended)
 
 ```bash
 # Create environment from environment.yml
@@ -55,7 +60,7 @@ conda env create -f environment.yml
 conda activate hackathon
 ```
 
-### 3. Set Up API Key
+### 2. Set Up API Key
 
 ```bash
 # Set your OpenAI API key as an environment variable
@@ -102,14 +107,11 @@ python main.py --interactive
 
 # Run all cases (expensive!)
 python main.py --all
-
-# Presentation mode (uses gpt-4.1 instead of gpt-4.1-mini)
-python main.py --presentation
 ```
 
 ---
 
-## 📊 System Comparison
+## System Comparison
 
 Compare the multi-agent system against a single-agent baseline:
 
@@ -126,7 +128,7 @@ This will:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 cambridge-dis-hackathon/
@@ -152,7 +154,7 @@ cambridge-dis-hackathon/
 
 ---
 
-## 🔍 Understanding the Output
+## Understanding the Output
 
 ### Verdict Types
 
@@ -195,15 +197,13 @@ EPISTEMOLOGIST ANALYSIS:
 
 ---
 
-## 📈 Output Files
+## Output Files
 
 Running the system generates several output files:
 
 - `debate_results.json` - Full debate results with all agent responses
 - `multi_agent_results.json` - Multi-agent system results
 - `single_agent_results.json` - Single-agent baseline results
-- `comparison_report.md` - Detailed comparison analysis
-- `comparison_dashboard.html` - Interactive visualization (if generated)
 - `visualization_data_*.json` - Data for visualizations
 
 ### Why Multi-Agent Beats Single-Agent
@@ -216,19 +216,9 @@ Running the system generates several output files:
 
 ---
 
-## 🛠️ Development Tips
-
-### Cost Management
-
-- **Development**: Use `gpt-4.1-mini` (default) for testing
-- **Presentation**: Use `--presentation` flag for `gpt-4.1` only during demos
-
-### Debugging
+### Generating json reports (to be used in the `v0` app)
 
 ```bash
-# View raw agent responses
-python view_raw_responses.py
-
 # Export debate transcripts
 python export_debates.py
 ```
