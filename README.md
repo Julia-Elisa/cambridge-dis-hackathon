@@ -3,7 +3,7 @@ FactTrace Hackathon · University of Cambridge · 31 Jan 2026
 
 Team: Julia D, Iuliia V, Paulina C, Raj.
 
-**Award:** Winner team.
+**Award:** Winning team.
 
 
 We built a **multi-agent fact-verification system** where AI agents **disagree, argue, and negotiate** to determine whether an external claim is a **faithful representation** of a source fact or a **mutation**.
